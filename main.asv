@@ -1,0 +1,63 @@
+clear; close all; clc;
+rng(2); % 乱数シードの固定（再現性の確保）
+
+% 波形を読み込み
+[s1, fs] = audioread("s1.wav");
+[s2, fs] = audioread("s2.wav");
+s = [s1, s2].'; % sは音源×時間
+
+% 波形をプロット
+sigLen = size(s, 2); % 信号長
+timeAx = 0:1/fs:(sigLen-1)/fs; % 時間軸
+% figure; plot(timeAx, s(1, :)); grid on;
+% figure; plot(timeAx, s(2, :)); grid on;
+
+% 自分で混合
+A = [0.8, -0.6;...
+     0.7, 0.9]; % 混合行列
+x = A*s; % 混合
+% figure; plot(timeAx, x(1, :)); grid on;
+% figure; plot(timeAx, x(2, :)); grid on;
+
+% 再生
+% sound(x(1, :), fs);
+
+W = randn(2);
+I = eye(2); % Iをサイズ2×2の単位行列で定義
+
+% ICA
+iterNum = 50; % 反復回数
+stepSize = 0.5; % 勾配降下法のステップサイズ（大きくすると不安定，小さくすると反復回数がたくさん必要）
+% W = calc_ica(x, iterNum, stepSize);
+
+% ICAの結果を使って分離
+J = zeros(iterNum, 1);
+for l = 1 : iterNum-1
+    E = zeros(2); % 経験値の計算用
+    for t = 1 : sigLen
+        y(:, t) = W*x(:, t);
+%        p = y(:, t)./max(abs(y(:, t)), eps);
+        p = tanh(y(:, t));
+        R = p * y(:, t).';
+        E = E + (1/sigLen)*R;
+    end
+    W = W - stepSize * (E - I) * W;
+    J(t, 1) = -log(abs(det(W))) - (1/T)*sum(log((1/pi)*sech(y)), 'all');
+end
+
+for t = 1 : sigLen
+    y(:, t) = W * x(:, t);
+end
+ 
+% % 波形表示
+% figure; plot(timeAx, y(1, :)); grid on;
+% figure; plot(timeAx, y(2, :)); grid on;
+% 
+% % 再生
+% sound(y(1, :), fs);
+
+% 保存
+fileName = "./y1.wav";
+audiowrite(fileName, y(1, :).', fs);
+fileName = "./y2.wav";
+audiowrite(fileName, y(2, :).', fs);
