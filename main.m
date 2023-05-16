@@ -57,6 +57,6 @@ sMulti(2, :) = sMulti1(2, :) + sMulti2(2, :);
 
 % 保存
 fileName = "./y1.wav";
-audiowrite(fileName, sMulti1(1, :).', fs);
+audiowrite(fileName, sMulti1.', fs);
 fileName = "./y2.wav";
-audiowrite(fileName, sMulti2(2, :).', fs);
+audiowrite(fileName, sMulti2.', fs);
