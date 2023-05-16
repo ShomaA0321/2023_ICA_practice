@@ -35,7 +35,7 @@ end
 
 y = y/max(abs(y), [], 'all');
 
-plot(J)
+% plot(J)
 
 % % 波形表示
 % figure; plot(timeAx, y(1, :)); grid on;
@@ -44,8 +44,19 @@ plot(J)
 % % 再生
 % sound(y(1, :), fs);
 
+% プロジェクションバック
+invW = inv(W);  % Wの逆行列を定義
+y1 = y(1, :);   % yの1行目を抽出
+y2 = y(2, :);   % yの2行目を抽出
+sy1 = [y1; zeros(1, length(y1))];
+sy2 = [zeros(1, length(y2)); y2];
+sMulti1 = invW * sy1;
+sMulti2 = invW * sy2;
+sMulti(1, :) = sMulti1(1, :) + sMulti2(1, :);
+sMulti(2, :) = sMulti1(2, :) + sMulti2(2, :);
+
 % 保存
 fileName = "./y1.wav";
-audiowrite(fileName, y(1, :).', fs);
+audiowrite(fileName, sMulti1(1, :).', fs);
 fileName = "./y2.wav";
-audiowrite(fileName, y(2, :).', fs);
+audiowrite(fileName, sMulti2(2, :).', fs);
