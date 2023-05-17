@@ -22,39 +22,34 @@ x = A*s; % 混合
 % 再生
 % sound(x(1, :), fs);
 
-W = randn(2);
-I = eye(2); % Iをサイズ2×2の単位行列で定義
-
 % ICA
-iterNum = 50; % 反復回数
+iterNum = 30; % 反復回数
 stepSize = 0.5; % 勾配降下法のステップサイズ（大きくすると不安定，小さくすると反復回数がたくさん必要）
-% W = calc_ica(x, iterNum, stepSize);
 
 % ICAの結果を使って分離
-J = zeros(iterNum, 1);
-for l = 1 : iterNum-1
-    E = zeros(2); % 経験値の計算用
-    for t = 1 : sigLen
-        y(:, t) = W*x(:, t);
-%        p = y(:, t)./max(abs(y(:, t)), eps);
-        p = tanh(y(:, t));
-        R = p * y(:, t).';
-        E = E + (1/sigLen)*R;
-    end
-    W = W - stepSize * (E - I) * W;
-    J(t, 1) = -log(abs(det(W))) - (1/T)*sum(log((1/pi)*sech(y)), 'all');
-end
+[W, J] = calc_ica(x, iterNum, stepSize);
 
 for t = 1 : sigLen
     y(:, t) = W * x(:, t);
 end
- 
+
+y = y/max(abs(y), [], 'all');
+
+plot(J)
+
 % % 波形表示
 % figure; plot(timeAx, y(1, :)); grid on;
 % figure; plot(timeAx, y(2, :)); grid on;
 % 
 % % 再生
 % sound(y(1, :), fs);
+
+invW = inv(W);  % Wの逆行列を定義
+y1 = y(1, :);   % yの1行目
+y2 = y(2, :);   % yの2行目
+s11 = invW * y1;
+s22 = invW * y2;
+s = s11 + s22;
 
 % 保存
 fileName = "./y1.wav";
